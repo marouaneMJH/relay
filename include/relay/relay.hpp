@@ -1,25 +1,36 @@
-#ifndef RELAY_HPP
-#define RELAY_HPP
+#pragma once
 
 #include <boost/asio.hpp>
-#include <string>
+#include <memory>
 
 namespace relay
 {
+    using boost::asio::ip::tcp;
+    class Session : public std::enable_shared_from_this<Session>
+    {
+    public:
+        explicit Session(tcp::socket socket);
+        void start();
+
+    private:
+        void do_read();
+
+        tcp::socket socket_;
+        std::array<char, 1024> buffer_;
+    };
 
     class RelayServer
     {
     public:
-        RelayServer(unsigned short port);
+        explicit RelayServer(unsigned short port);
         void run();
         void stop();
+        void do_accept();
 
-    private:
+        // std::string make_daytime_string();
+
         boost::asio::io_context io_context_;
-        unsigned short port_;
-        void server_logic_();
+        tcp::acceptor acceptor_;
     };
 
 } // namespace relay
-
-#endif // RELAY_HPP

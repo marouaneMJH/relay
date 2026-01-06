@@ -15,4 +15,4 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 # Create executable
 add_executable(relay ${SOURCES})
-target_link_libraries(relay Boost::boost Boost::system)
+target_link_libraries(relay Boost::system)
