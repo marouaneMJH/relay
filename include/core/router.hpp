@@ -5,11 +5,12 @@
 
 class PeerConnection;
 class PeerManager;
+class Node;
 
 class Router
 {
 public:
-    Router(uint64_t self_id, PeerManager &peers);
+    Router(uint64_t self_id, PeerManager &peers, Node &node);
 
     void on_message(Message msg, PeerConnection *from);
 
@@ -18,4 +19,5 @@ private:
 
     uint64_t self_id_;
     PeerManager &peers_;
+    Node &node_;
 };

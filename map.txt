@@ -1,3 +1,35 @@
-./build/relay 9001 127.0.0.1 9002
-./build/relay 9002 127.0.0.1 9003
-./build/relay 9003
+add 1 8080
+add 2 8081
+add 3 8082
+add 4 8083
+add 5 8084
+add 6 8085
+add 7 8086
+add 8 8087
+add 9 8088
+add 10 8089
+
+connect 1 127.0.0.1 8081
+connect 1 127.0.0.1 8082
+connect 2 127.0.0.1 8083
+connect 2 127.0.0.1 8084
+connect 3 127.0.0.1 8085
+connect 4 127.0.0.1 8086
+connect 5 127.0.0.1 8087
+connect 6 127.0.0.1 8088
+connect 7 127.0.0.1 8089
+connect 8 127.0.0.1 8080
+connect 9 127.0.0.1 8081
+connect 10 127.0.0.1 8085
+
+connect 1 127.0.0.1 8084
+connect 3 127.0.0.1 8087
+connect 5 127.0.0.1 8089
+connect 2 127.0.0.1 8086
+connect 4 127.0.0.1 8088
+connect 6 127.0.0.1 8080
+
+connect 7 127.0.0.1 8082
+connect 8 127.0.0.1 8083
+connect 9 127.0.0.1 8085
+connect 10 127.0.0.1 8081

@@ -3,11 +3,22 @@
 
 Node::Node(uint64_t id, uint16_t port)
     : acceptor_(io_, tcp::endpoint(tcp::v4(), port)),
-      router_(id, peers_),
-      id_(id)
+      router_(id, peers_, *this),
+      id_(id),
+      receive_handler_(default_receive_handler)
 {
 
     std::cout << this->id_ << " is initialised" << std::endl;
+}
+
+void Node::set_receive_handler(ReceiveHandler handler)
+{
+    receive_handler_ = std::move(handler);
+}
+
+void Node::default_receive_handler(uint64_t node_id, uint64_t from_id, const std::string &message)
+{
+    std::cout << "[NODE " << node_id << "] received from " << from_id << ": " << message << std::endl;
 }
 
 void Node::run()
@@ -21,6 +32,8 @@ void Node::accept_loop()
     acceptor_.async_accept([this](boost::system::error_code ec, tcp::socket socket)
                            {
         if (!ec) {
+            std::cout << "\n[NODE " << this->id_ << "] Accepted connection from " 
+                      << socket.remote_endpoint() << std::endl;
             auto peer = std::make_shared<PeerConnection>(std::move(socket), router_);
             peers_.add(peer);
             peer->start();
@@ -30,15 +43,16 @@ void Node::accept_loop()
 
 void Node::connect(const tcp::endpoint &ep)
 {
-    auto socket = tcp::socket(io_);
-    socket.async_connect(ep, [this, s = std::move(socket)](boost::system::error_code ec) mutable
+    auto socket_ptr = std::make_shared<tcp::socket>(io_);
+    socket_ptr->async_connect(ep, [this, socket_ptr, ep](boost::system::error_code ec) mutable
                          {
         if (!ec) {
-            auto peer = std::make_shared<PeerConnection>(std::move(s), router_);
+            auto peer = std::make_shared<PeerConnection>(std::move(*socket_ptr), router_);
             peers_.add(peer);
             peer->start();
-            // DEBUG
-            std::cout << this->id_  << " is connected";
+            std::cout << "\n[NODE " << this->id_ << "] Connected to " << ep << std::endl;
+        } else {
+            std::cerr << "\n[NODE " << this->id_ << "] Connection failed: " << ec.message() << std::endl;
         } });
 }
 
@@ -53,6 +67,8 @@ void Node::send(uint64_t dst, std::string_view data)
 
     msg.payload.assign(data.begin(), data.end());
 
+    std::cout << "\n[NODE " << id_ << "] Sending message to " << dst 
+              << " via peers" << std::endl;
     peers_.for_each([&](auto &peer)
                     { peer->async_send(msg); });
 }
