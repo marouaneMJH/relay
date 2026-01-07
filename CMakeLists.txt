@@ -4,8 +4,8 @@ project(relay)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Use modern Boost config from Conan
-find_package(Boost REQUIRED CONFIG COMPONENTS system)
+# Find Boost package
+find_package(Boost REQUIRED COMPONENTS system)
 
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)

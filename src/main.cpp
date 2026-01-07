@@ -12,8 +12,6 @@ int main(int argc, char *argv[])
     uint64_t id = std::stoull(argv[1]);
     uint16_t port = std::stoi(argv[2]);
 
-    std::cout << "HELloo";
-
     Node node(id, port);
 
     if (argc == 5)

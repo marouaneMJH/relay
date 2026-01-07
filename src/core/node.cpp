@@ -7,7 +7,7 @@ Node::Node(uint64_t id, uint16_t port)
       id_(id)
 {
 
-    std::cout << this->id_ << "is initialised";
+    std::cout << this->id_ << "is initialised" << std::endl;
 }
 
 void Node::run()
