@@ -7,7 +7,7 @@ Node::Node(uint64_t id, uint16_t port)
       id_(id)
 {
 
-    std::cout << this->id_ << "is initialised" << std::endl;
+    std::cout << this->id_ << " is initialised" << std::endl;
 }
 
 void Node::run()
@@ -38,7 +38,7 @@ void Node::connect(const tcp::endpoint &ep)
             peers_.add(peer);
             peer->start();
             // DEBUG
-            std::cout << this->id_  << "is connected";
+            std::cout << this->id_  << " is connected";
         } });
 }
 
