@@ -45,7 +45,7 @@ void Node::connect(const tcp::endpoint &ep)
 {
     auto socket_ptr = std::make_shared<tcp::socket>(io_);
     socket_ptr->async_connect(ep, [this, socket_ptr, ep](boost::system::error_code ec) mutable
-                         {
+                              {
         if (!ec) {
             auto peer = std::make_shared<PeerConnection>(std::move(*socket_ptr), router_);
             peers_.add(peer);
@@ -67,7 +67,7 @@ void Node::send(uint64_t dst, std::string_view data)
 
     msg.payload.assign(data.begin(), data.end());
 
-    std::cout << "\n[NODE " << id_ << "] Sending message to " << dst 
+    std::cout << "\n[NODE " << id_ << "] Sending message to " << dst
               << " via peers" << std::endl;
     peers_.for_each([&](auto &peer)
                     { peer->async_send(msg); });

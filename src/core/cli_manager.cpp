@@ -52,11 +52,10 @@ void CliManager::add_client(uint64_t id, uint16_t port)
         info.node = std::make_unique<Node>(id, port);
 
         // Set custom receive handler to display messages in CLI
-        info.node->set_receive_handler([](uint64_t node_id, uint64_t from_id, const std::string& message)
-        {
+        info.node->set_receive_handler([](uint64_t node_id, uint64_t from_id, const std::string &message)
+                                       {
             std::cout << "\n[CLIENT " << node_id << "] <<< Message from " << from_id << ": " << message << std::endl;
-            std::cout << std::flush;
-        });
+            std::cout << std::flush; });
 
         // Capture raw pointer for thread - the unique_ptr in the map keeps it alive
         Node *node_ptr = info.node.get();
