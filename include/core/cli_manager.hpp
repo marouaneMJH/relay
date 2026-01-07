@@ -6,6 +6,8 @@
 #include <vector>
 #include "node.hpp"
 
+// TODO: Load network from file
+
 class CliManager
 {
 public:

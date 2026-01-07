@@ -62,7 +62,7 @@ void Node::send(uint64_t dst, std::string_view data)
     msg.header.type = static_cast<uint16_t>(MessageType::Data);
     msg.header.src_node_id = id_;
     msg.header.dst_node_id = dst;
-    msg.header.ttl = 8;
+    msg.header.ttl = 2;
     msg.header.size = data.size();
 
     msg.payload.assign(data.begin(), data.end());
