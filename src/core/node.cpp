@@ -7,8 +7,16 @@ Node::Node(uint64_t id, uint16_t port)
       id_(id),
       receive_handler_(default_receive_handler)
 {
-
     std::cout << this->id_ << " is initialised" << std::endl;
+}
+
+Node::Node(const Node &node)
+    : acceptor_(io_, node.acceptor_.local_endpoint()),
+      router_(node.id_, peers_, *this),
+      id_(node.id_),
+      receive_handler_(node.receive_handler_),
+      peers_(node.peers_)
+{
 }
 
 void Node::set_receive_handler(ReceiveHandler handler)
@@ -67,8 +75,8 @@ void Node::send(uint64_t dst, std::string_view data)
 
     msg.payload.assign(data.begin(), data.end());
 
-    std::cout << "\n[NODE " << id_ << "] Sending message to " << dst
-              << " via peers" << std::endl;
+    // std::cout << "\n[NODE " << id_ << "] Sending message to " << dst
+    //           << " via peers" << std::endl;
     peers_.for_each([&](auto &peer)
                     { peer->async_send(msg); });
 }

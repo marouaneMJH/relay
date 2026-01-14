@@ -14,6 +14,8 @@ public:
     using ReceiveHandler = std::function<void(uint64_t node_id, uint64_t from_id, const std::string &message)>;
 
     Node(uint64_t id, uint16_t port);
+    Node(const Node &node);
+
     void run();
     void connect(const tcp::endpoint &ep);
     void send(uint64_t dst, std::string_view data);
