@@ -1,0 +1,162 @@
+#include "benchmark/benchmark.hpp"
+#include "core/node.hpp"
+
+#include <algorithm>
+#include <thread>
+#include <random>
+#include <chrono>
+#include <iostream>
+#include <cstring>
+
+using clock_t_ = std::chrono::steady_clock;
+
+static inline uint64_t now_ns()
+{
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(
+               clock_t_::now().time_since_epoch())
+        .count();
+}
+
+/* ============================
+   STATIC NODE FACTORY
+   ============================ */
+std::vector<Node>
+Benchmark::generate_nodes(std::size_t count,
+                          uint16_t base_port)
+{
+    std::vector<Node> nodes;
+    nodes.reserve(count);
+
+    for (std::size_t i = 0; i < count; ++i)
+    {
+        nodes.emplace_back(
+            static_cast<uint64_t>(i),
+            static_cast<uint16_t>(base_port + i));
+    }
+
+    return nodes;
+}
+
+/* ============================
+   EXISTING BENCHMARK CODE
+   ============================ */
+
+Benchmark::Benchmark(std::vector<Node> &nodes,
+                     uint64_t duration_seconds)
+    : nodes_(nodes),
+      duration_s_(duration_seconds)
+{
+}
+
+void Benchmark::start()
+{
+    running_.store(true, std::memory_order_release);
+    start_tp_ = clock_t_::now();
+
+    for (auto &n : nodes_)
+    {
+        n.set_receive_handler(
+            [this](uint64_t, uint64_t, const std::string &msg)
+            {
+                on_receive(0, 0, msg);
+            });
+    }
+
+    std::thread([this]
+                {
+        constexpr auto interval =
+            std::chrono::microseconds(200); // ~5k msg/s
+
+        auto next = clock_t_::now();
+
+        while (running_.load(std::memory_order_acquire)) {
+            send_tick();
+            next += interval;
+            std::this_thread::sleep_until(next);
+        } })
+        .detach();
+}
+
+void Benchmark::send_tick()
+{
+    static uint64_t seq = 0;
+
+    uint64_t ts = now_ns();
+    std::string payload;
+    payload.resize(sizeof(uint64_t) * 2);
+
+    std::memcpy(payload.data(), &seq, sizeof(uint64_t));
+    std::memcpy(payload.data() + sizeof(uint64_t), &ts, sizeof(uint64_t));
+
+    static std::size_t index = 0;
+    uint64_t dst = index;
+
+    nodes_[index].send(dst, payload);
+
+    ++sent_;
+    ++seq;
+    index = (index + 1) % nodes_.size();
+}
+
+void Benchmark::on_receive(uint64_t,
+                           uint64_t,
+                           const std::string &msg)
+{
+    if (msg.size() < sizeof(uint64_t) * 2)
+    {
+        ++dropped_;
+        return;
+    }
+
+    uint64_t ts;
+    std::memcpy(&ts,
+                msg.data() + sizeof(uint64_t),
+                sizeof(uint64_t));
+
+    uint64_t latency = now_ns() - ts;
+
+    {
+        std::lock_guard lk(latency_mtx_);
+        latencies_ns_.push_back(latency);
+    }
+
+    ++received_;
+}
+
+Benchmark::Result Benchmark::wait_and_collect()
+{
+    std::this_thread::sleep_for(
+        std::chrono::seconds(duration_s_));
+
+    running_.store(false, std::memory_order_release);
+
+    auto elapsed =
+        std::chrono::duration_cast<std::chrono::duration<double>>(
+            clock_t_::now() - start_tp_)
+            .count();
+
+    std::vector<uint64_t> lats;
+    {
+        std::lock_guard lk(latency_mtx_);
+        lats = latencies_ns_;
+    }
+
+    std::sort(lats.begin(), lats.end());
+
+    auto pct = [&](double p) -> uint64_t
+    {
+        if (lats.empty())
+            return 0;
+        std::size_t idx = static_cast<std::size_t>(p * lats.size());
+        return lats[std::min(idx, lats.size() - 1)];
+    };
+
+    return {
+        sent_.load(),
+        received_.load(),
+        dropped_.load(),
+        sent_.load() / elapsed,
+        pct(0.50),
+        pct(0.95),
+        pct(0.99)};
+}
