@@ -67,7 +67,7 @@ void Benchmark::start()
     for (auto &n : nodes_)
     {
         n->set_receive_handler(
-            [this](uint64_t, uint64_t, const std::string &msg)
+            [this](uint64_t node_id, uint64_t from_id, const std::string &msg)
             {
                 on_receive(0, 0, msg);
             });
@@ -109,9 +109,10 @@ void Benchmark::send_tick()
     index = (index + 1) % nodes_.size();
 }
 
-void Benchmark::on_receive(uint64_t,
-                           uint64_t,
-                           const std::string &msg)
+void Benchmark::on_receive(
+    uint64_t node_id,
+    uint64_t from_id,
+    const std::string &msg)
 {
     if (msg.size() < sizeof(uint64_t) * 2)
     {
@@ -120,9 +121,12 @@ void Benchmark::on_receive(uint64_t,
     }
 
     uint64_t ts;
+    uint64_t seq;
+
     std::memcpy(&ts,
                 msg.data() + sizeof(uint64_t),
                 sizeof(uint64_t));
+    std::memcpy(&seq, msg.data(), sizeof(uint64_t));
 
     uint64_t latency = now_ns() - ts;
 
@@ -132,6 +136,13 @@ void Benchmark::on_receive(uint64_t,
     }
 
     ++received_;
+
+    // std::cout
+    //     << "[NODE " << node_id << "] "
+    //     << "from=" << from_id
+    //     << " seq=" << seq
+    //     << " latency(ns)=" << latency
+    //     << std::endl;
 }
 
 Benchmark::Result Benchmark::wait_and_collect()

@@ -81,7 +81,7 @@ void Node::send(uint64_t dst, std::string_view data)
     msg.payload.assign(data.begin(), data.end());
 
     // std::cout << "\n[NODE " << id_ << "] Sending message to " << dst
-    //           << " via peers" << std::endl;
+    //   << " via peers" << std::endl;
     peers_.for_each([&](auto &peer)
                     { peer->async_send(msg); });
 }

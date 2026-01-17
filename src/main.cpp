@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 
   auto nodes = Benchmark::generate_nodes(nbr_nodes, 10000);
 
-  Benchmark bench(nodes, 3); // 10 seconds
+  Benchmark bench(nodes, 120); // 2 minutes
 
   bench.start();
 
