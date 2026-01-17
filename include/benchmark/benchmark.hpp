@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <string>
 #include <mutex>
-
+#include <memory>
 class Node;
 
 class Benchmark
@@ -23,11 +23,17 @@ public:
     };
 
     // Static node generator
-    static std::vector<Node>
+    static std::vector<std::unique_ptr<Node>>
     generate_nodes(std::size_t count,
                    uint16_t base_port);
 
-    Benchmark(std::vector<Node> &nodes,
+    // Connectors
+
+    void connect_server_client(int server_index = 0);
+
+    // void connect_cycle_topology();
+
+    Benchmark(std::vector<std::unique_ptr<Node>> &nodes,
               uint64_t duration_seconds);
 
     void start();
@@ -38,10 +44,11 @@ private:
                     uint64_t from_id,
                     const std::string &msg);
 
+    void run_nodes();
     void send_tick();
 
 private:
-    std::vector<Node> &nodes_;
+    std::vector<std::unique_ptr<Node>> &nodes_;
     const uint64_t duration_s_;
 
     std::atomic<uint64_t> sent_{0};

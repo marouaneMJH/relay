@@ -14,7 +14,12 @@ public:
     using ReceiveHandler = std::function<void(uint64_t node_id, uint64_t from_id, const std::string &message)>;
 
     Node(uint64_t id, uint16_t port);
-    Node(const Node &node);
+    ~Node();
+
+    Node(const Node &) = delete;
+    Node &operator=(const Node &) = delete;
+    Node(Node &&) = delete;
+    Node &operator=(Node &&) = delete;
 
     void run();
     void connect(const tcp::endpoint &ep);
@@ -23,6 +28,8 @@ public:
 
     // Get the receive handler for router to use
     const ReceiveHandler &get_receive_handler() const { return receive_handler_; }
+
+    uint64_t get_id() const { return id_; }
 
 private:
     void accept_loop();
@@ -35,5 +42,11 @@ private:
     Router router_;
 
     uint64_t id_;
+
     ReceiveHandler receive_handler_;
+
+    std::thread thread_;
+    boost::asio::executor_work_guard<
+        boost::asio::io_context::executor_type>
+        work_;
 };

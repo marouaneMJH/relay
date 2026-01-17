@@ -2,21 +2,20 @@
 #include "core/peer_connection.hpp"
 
 Node::Node(uint64_t id, uint16_t port)
-    : acceptor_(io_, tcp::endpoint(tcp::v4(), port)),
+    : io_(),
+      work_(boost::asio::make_work_guard(io_)),
+      acceptor_(io_, tcp::endpoint(tcp::v4(), port)),
       router_(id, peers_, *this),
       id_(id),
       receive_handler_(default_receive_handler)
 {
     std::cout << this->id_ << " is initialised" << std::endl;
 }
-
-Node::Node(const Node &node)
-    : acceptor_(io_, node.acceptor_.local_endpoint()),
-      router_(node.id_, peers_, *this),
-      id_(node.id_),
-      receive_handler_(node.receive_handler_),
-      peers_(node.peers_)
+Node::~Node()
 {
+    io_.stop();
+    if (thread_.joinable())
+        thread_.join();
 }
 
 void Node::set_receive_handler(ReceiveHandler handler)
@@ -32,7 +31,8 @@ void Node::default_receive_handler(uint64_t node_id, uint64_t from_id, const std
 void Node::run()
 {
     accept_loop();
-    io_.run();
+    thread_ = std::thread([this]
+                          { io_.run(); });
 }
 
 void Node::accept_loop()
@@ -51,9 +51,14 @@ void Node::accept_loop()
 
 void Node::connect(const tcp::endpoint &ep)
 {
+    std::cout << "trying to connect 0" << std::endl;
+
     auto socket_ptr = std::make_shared<tcp::socket>(io_);
+    std::cout << "trying to connect 1" << std::endl;
+
     socket_ptr->async_connect(ep, [this, socket_ptr, ep](boost::system::error_code ec) mutable
                               {
+            std::cout << "io stopped? " << io_.stopped() << std::endl;
         if (!ec) {
             auto peer = std::make_shared<PeerConnection>(std::move(*socket_ptr), router_);
             peers_.add(peer);

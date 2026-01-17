@@ -107,6 +107,7 @@ void CliManager::send_message(uint64_t from_id, uint64_t to_id, const std::strin
 
     try
     {
+        std::cout << "Sendig Message sent from " << from_id << " to " << to_id << " ...\n";
         it->second.node->send(to_id, message);
         std::cout << "Message sent from " << from_id << " to " << to_id << "\n";
     }

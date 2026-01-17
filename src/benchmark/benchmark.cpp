@@ -8,6 +8,10 @@
 #include <iostream>
 #include <cstring>
 
+#ifndef PORT_BASE
+#define PORT_BASE 10000
+#endif
+
 using clock_t_ = std::chrono::steady_clock;
 
 static inline uint64_t now_ns()
@@ -20,18 +24,21 @@ static inline uint64_t now_ns()
 /* ============================
    STATIC NODE FACTORY
    ============================ */
-std::vector<Node>
+std::vector<std::unique_ptr<Node>>
 Benchmark::generate_nodes(std::size_t count,
                           uint16_t base_port)
 {
-    std::vector<Node> nodes;
+    std::vector<std::unique_ptr<Node>> nodes;
     nodes.reserve(count);
 
     for (std::size_t i = 0; i < count; ++i)
     {
         nodes.emplace_back(
-            static_cast<uint64_t>(i),
-            static_cast<uint16_t>(base_port + i));
+            std::make_unique<Node>(
+                static_cast<uint64_t>(i),
+                static_cast<uint16_t>(base_port + i))
+
+        );
     }
 
     return nodes;
@@ -41,7 +48,7 @@ Benchmark::generate_nodes(std::size_t count,
    EXISTING BENCHMARK CODE
    ============================ */
 
-Benchmark::Benchmark(std::vector<Node> &nodes,
+Benchmark::Benchmark(std::vector<std::unique_ptr<Node>> &nodes,
                      uint64_t duration_seconds)
     : nodes_(nodes),
       duration_s_(duration_seconds)
@@ -50,12 +57,16 @@ Benchmark::Benchmark(std::vector<Node> &nodes,
 
 void Benchmark::start()
 {
+    run_nodes();
+    connect_server_client();
+
+    std::cout << "Starting The Benchmark" << std::endl;
     running_.store(true, std::memory_order_release);
     start_tp_ = clock_t_::now();
 
     for (auto &n : nodes_)
     {
-        n.set_receive_handler(
+        n->set_receive_handler(
             [this](uint64_t, uint64_t, const std::string &msg)
             {
                 on_receive(0, 0, msg);
@@ -88,10 +99,10 @@ void Benchmark::send_tick()
     std::memcpy(payload.data(), &seq, sizeof(uint64_t));
     std::memcpy(payload.data() + sizeof(uint64_t), &ts, sizeof(uint64_t));
 
-    static std::size_t index = 0;
-    uint64_t dst = index;
+    static std::size_t index = 1;
+    uint64_t dst = 0;
 
-    nodes_[index].send(dst, payload);
+    nodes_[index]->send(dst, payload);
 
     ++sent_;
     ++seq;
@@ -159,4 +170,27 @@ Benchmark::Result Benchmark::wait_and_collect()
         pct(0.50),
         pct(0.95),
         pct(0.99)};
+}
+
+void Benchmark::connect_server_client(int server_index)
+{
+
+    if (server_index >= nodes_.size())
+        throw std::overflow_error("The Server index has a overflow position");
+
+    tcp::endpoint ep(boost::asio::ip::make_address("127.0.0.1"), PORT_BASE + server_index);
+
+    for (size_t i = 0; i < nodes_.size(); i++)
+    {
+        if (i == server_index)
+            continue;
+
+        nodes_[i]->connect(ep);
+    }
+}
+
+void Benchmark::run_nodes()
+{
+    for (auto &n : nodes_)
+        n->run();
 }
