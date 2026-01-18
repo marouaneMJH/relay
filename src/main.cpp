@@ -1,20 +1,20 @@
 #include "core/node.hpp"
 #include "benchmark/benchmark.hpp"
+
 #define PORT_BASE 10000
+#define MINUTES(X) ((X) * 60)
 
 int main(int argc, char *argv[])
 {
   int nbr_nodes = 10;
-
   if (argc >= 2)
     nbr_nodes = std::stoi(argv[1]);
 
-  auto nodes = Benchmark::generate_nodes(nbr_nodes, 10000);
-
-  Benchmark bench(nodes, 120); // 2 minutes
+  // --- BENCHMARK ---
+  auto nodes = Benchmark::generate_nodes(nbr_nodes, PORT_BASE);
+  Benchmark bench(nodes, MINUTES(1));
 
   bench.start();
-
   auto result = bench.wait_and_collect();
 
   std::cout

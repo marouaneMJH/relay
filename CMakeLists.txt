@@ -1,18 +1,27 @@
 cmake_minimum_required(VERSION 3.15)
-project(relay)
+project(relay LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Find Boost package
+# Boost
 find_package(Boost REQUIRED COMPONENTS system)
 
-# Include directories
-include_directories(${CMAKE_SOURCE_DIR}/include)
+# SDL2
+find_package(SDL2 REQUIRED)
 
-# Source files
+# Sources
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
-# Create executable
 add_executable(relay ${SOURCES})
-target_link_libraries(relay Boost::system)
+
+target_include_directories(relay
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/include
+)
+
+target_link_libraries(relay
+    PRIVATE
+        Boost::system
+        SDL2::SDL2
+)

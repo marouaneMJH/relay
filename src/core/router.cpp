@@ -20,7 +20,7 @@ void Router::on_message(Message msg, PeerConnection *from)
     {
         std::string text(msg.payload.begin(), msg.payload.end());
         // !DEBUG: Use the receive handler callback
-        // std::cout << "[WASSIT]:" << msg.header.src_node_id << " -> " << self_id_ << " -> " << msg.header.dst_node_id << std::endl;
+        std::cout << "[WASSIT]:" << msg.header.src_node_id << " -> " << self_id_ << " -> " << msg.header.dst_node_id << std::endl;
     }
 
     if (msg.header.ttl == 0)
