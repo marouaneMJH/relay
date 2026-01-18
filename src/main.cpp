@@ -10,11 +10,8 @@ int main(int argc, char *argv[])
   int nbr_nodes = 10;
   if (argc >= 2)
     nbr_nodes = std::stoi(argv[1]);
-
   CliManager cli;
-
   cli.run();
-
   // --- BENCHMARK ---
   // auto nodes = Benchmark::generate_nodes(nbr_nodes, PORT_BASE);
   // Benchmark bench(nodes, MINUTES(1));
