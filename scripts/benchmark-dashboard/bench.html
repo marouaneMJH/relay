@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Bench Visualizer</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            font-family: monospace;
+        }
+
+        #chart {
+            width: 100%;
+            height: 600px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Benchmark Visualizer</h2>
+    <p>Paste table rows here:</p>
+    <textarea id="input"
+        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500">  </textarea>
+    <br><br>
+
+    <div class="grid grid-cols-2 gap-4" id="charts">
+        <div id="chart-1"></div>
+        <div id="chart-2"></div>
+        <div id="chart-3"></div>
+        <div id="chart-4"></div>
+    </div>
+
+    <script>
+        const fields = ['msg_s', 'p50', 'p95', 'p99'];
+
+        function getDuplicatedPoints(points) {
+            // graph[0] = primary graph
+            // graph[1] = 2nd occurrences
+            // graph[2] = 3rd occurrences
+            // etc.
+            const graphs = [];
+            const count = new Map();
+
+            for (const p of points) {
+                const n = p.n;
+
+                // Track occurrence count
+                const c = count.get(n) || 0;
+                count.set(n, c + 1);
+
+                // Ensure graph bucket exists
+                if (!graphs[c]) graphs[c] = [];
+
+                graphs[c].push(p);
+            }
+
+            return graphs;
+        }
+
+        function parse(text) {
+            let rows = [];
+            let lines = text.split('\n');
+
+            for (let line of lines) {
+                line = line.replace(/\|/g, "").trim();
+                if (!line) continue;
+
+                if (line.includes('ERROR')) continue;
+                // Reject if contains letters or non-numeric symbols
+                if (/[A-Za-z\]\[]/.test(line)) continue;
+                // if (!/[0-9]/.test(line)) continue;
+
+
+
+                let parts = line.split(/\s+/);
+                if (parts.length < 8) continue;
+
+                rows.push({
+                    n: Number(parts[0]),
+                    sent: Number(parts[1]),
+                    recv: Number(parts[2]),
+                    drop: Number(parts[3]),
+                    msg_s: Number(parts[4]),
+                    p50: Number(parts[5]),
+                    p95: Number(parts[6]),
+                    p99: Number(parts[7])
+                });
+            }
+            return rows.sort((a, b) => a.n - b.n);
+        }
+
+        function plot() {
+            const chartsContainer = document.getElementById("charts");
+            chartsContainer.innerHTML = ""; // cleanup
+
+            const txt = document.getElementById("input").value;
+            const rows = parse(txt);
+            if (!rows.length) return;
+
+            const graphs = getDuplicatedPoints(rows);
+
+            // define background colors per duplicate layer (can extend)
+            const bgColors = [
+                "#eef6ff",
+                "#eaffea",
+                "#fff4e6",
+                "#fceeff",
+                "#f0f0f0"
+            ];
+
+            fields.forEach((f, fieldIndex) => {
+
+
+                graphs.forEach((graph, gindex) => {
+
+                    const container = document.createElement("div");
+                    container.style.padding = "15px";
+                    container.style.marginBottom = "15px";
+                    container.style.borderRadius = "6px";
+                    container.style.background = bgColors[gindex % bgColors.length];
+
+                    chartsContainer.appendChild(container);
+
+                    const div = document.createElement("div");
+                    div.id = `chart-${fieldIndex}-${gindex}`;
+                    div.style.width = "100%";
+                    div.style.height = "350px";
+
+                    container.appendChild(div);
+
+                    const xs = graph.map(r => r.n);
+                    const ys = graph.map(r => r[f]);
+
+                    Plotly.newPlot(div.id, [{
+                        x: xs,
+                        y: ys,
+                        mode: 'lines+markers',
+                        name: `dup-${gindex}`
+                    }], {
+                        title: `${f} (dup layer ${gindex})`,
+                        xaxis: { title: "N" },
+                        yaxis: { title: f }
+                    });
+                });
+            });
+        }
+
+        const inputField = document.getElementById("input");
+
+        // Re-plot on live input
+        inputField.addEventListener('input', () => {
+            plot();
+        });
+    </script>
+
+</body>
+
+</html>
