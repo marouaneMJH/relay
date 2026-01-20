@@ -9,18 +9,18 @@ add 8 8087
 add 9 8088
 add 10 8089
 
-connect 1 127.0.0.1 8081
-connect 1 127.0.0.1 8082
-connect 2 127.0.0.1 8083
-connect 2 127.0.0.1 8084
-connect 3 127.0.0.1 8085
-connect 4 127.0.0.1 8086
-connect 5 127.0.0.1 8087
-connect 6 127.0.0.1 8088
-connect 7 127.0.0.1 8089
-connect 8 127.0.0.1 8080
-connect 9 127.0.0.1 8081
-connect 10 127.0.0.1 8085
+connect 1 home.lab 8081
+connect 1 home.lab 8082
+connect 2 home.lab 8083
+connect 2 home.lab 8084
+connect 3 home.lab 8085
+connect 4 home.lab 8086
+connect 5 home.lab 8087
+connect 6 home.lab 8088
+connect 7 home.lab 8089
+connect 8 home.lab 8080
+connect 9 home.lab 8081
+connect 10 home.lab 8085
 
 connect 1 127.0.0.1 8084
 connect 3 127.0.0.1 8087
