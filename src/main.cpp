@@ -1,5 +1,5 @@
 #include "core/node.hpp"
-#include "core/cli_manager.hpp"
+#include "ui/cli_manager.hpp"
 #include "benchmark/benchmark.hpp"
 
 #define PORT_BASE 10000

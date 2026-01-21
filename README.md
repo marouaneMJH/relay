@@ -68,38 +68,38 @@ Classes are designed with composition in mind:
 
 ### Core Functionality
 
-✅ **Multi-Node Network**
+[+] **Multi-Node Network**
 
 -   Create and manage multiple network nodes simultaneously
 -   Each node operates independently with its own I/O context
 
-✅ **Peer-to-Peer Connections**
+[+] **Peer-to-Peer Connections**
 
 -   Nodes can connect to other nodes via TCP
 -   Bidirectional communication channels
 -   Automatic peer lifecycle management
 
-✅ **Message Routing**
+[+] **Message Routing**
 
 -   Flood routing algorithm with TTL (Time-To-Live) mechanism
 -   Messages forwarded to all peers except the sender
 -   Automatic message delivery to destination nodes
 
-✅ **Interactive CLI**
+[+] **Interactive CLI**
 
 -   Command-line interface for network management
 -   Runtime node creation and connection
 -   Message sending between nodes
 -   Network topology visualization
 
-✅ **Performance Benchmarking**
+[+] **Performance Benchmarking**
 
 -   Automated benchmark suite
 -   Latency measurement (p50, p95, p99 percentiles)
 -   Throughput calculation (messages per second)
 -   Various topology support (server-client, custom)
 
-✅ **Configurable Network Topologies**
+[+] **Configurable Network Topologies**
 
 -   Support for different network structures
 -   Loading topology from configuration files
@@ -643,5 +643,3 @@ The codebase follows modern C++ best practices and provides a solid foundation f
 -   **Dependencies**: Boost, SDL2
 
 ---
-
-_Last Updated: January 2026_

@@ -1,4 +1,4 @@
-#include "core/cli_manager.hpp"
+#include "ui/cli_manager.hpp"
 #include <iostream>
 #include <sstream>
 #include <algorithm>

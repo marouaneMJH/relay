@@ -11,6 +11,7 @@ Node::Node(uint64_t id, uint16_t port)
 {
     std::cout << this->id_ << " is initialised" << std::endl;
 }
+
 Node::~Node()
 {
     io_.stop();

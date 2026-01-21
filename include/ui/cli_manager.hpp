@@ -4,7 +4,7 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
-#include "node.hpp"
+#include "core/node.hpp"
 
 // TODO: Load network from file
 
